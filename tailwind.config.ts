@@ -9,9 +9,15 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
+        primary: '#7C3AED',  // 紫色主题
+        secondary: '#EC4899', // 粉色次要
+        accent: '#06B6D4',    // 青色强调
         background: "var(--background)",
         foreground: "var(--foreground)",
       },
+      animation: {
+        'bounce-slow': 'bounce 3s linear infinite',
+      }
     },
   },
   plugins: [],

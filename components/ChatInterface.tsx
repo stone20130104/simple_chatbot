@@ -50,11 +50,13 @@ export default function ChatInterface() {
     <div className="flex-1 mt-16 mb-16">
       <div className="max-w-3xl mx-auto h-[calc(100vh-8rem)] p-4 flex flex-col">
         {/* 聊天记录区域 */}
-        <div className="flex-1 overflow-y-auto space-y-4 p-4 rounded-lg bg-gray-50">
+        <div className="flex-1 overflow-y-auto space-y-4 p-4 rounded-2xl bg-gradient-to-br from-violet-50 to-pink-50">
           {messages.map((message, index) => (
             <div key={index} className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-              <div className={`max-w-[80%] rounded-lg p-3 ${
-                message.role === 'user' ? 'bg-blue-500 text-white' : 'bg-white border'
+              <div className={`max-w-[80%] rounded-2xl p-4 shadow-lg transition-all duration-200 ${
+                message.role === 'user' 
+                  ? 'bg-gradient-to-r from-primary to-secondary text-white' 
+                  : 'bg-white hover:scale-[1.02]'
               }`}>
                 {message.content}
               </div>
