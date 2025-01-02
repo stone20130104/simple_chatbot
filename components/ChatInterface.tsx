@@ -1,4 +1,6 @@
-import { useState } from 'react'
+import { useState, KeyboardEvent } from 'react'
+import ReactMarkdown from 'react-markdown'
+import { CodeProps } from 'react-markdown/lib/ast-to-react'
 
 interface Message {
   role: 'user' | 'assistant'
@@ -11,7 +13,7 @@ export default function ChatInterface() {
   const [isLoading, setIsLoading] = useState(false)
 
   const handleSubmit = async () => {
-    if (!input.trim()) return
+    if (!input.trim() || isLoading) return
 
     // 添加用户消息
     const newMessages = [...messages, { role: 'user' as const, content: input }]
@@ -46,6 +48,14 @@ export default function ChatInterface() {
     }
   }
 
+  // 处理按键事件
+  const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault() // 阻止默认的换行行为
+      handleSubmit()
+    }
+  }
+
   return (
     <div className="flex-1 mt-16 mb-16">
       <div className="max-w-3xl mx-auto h-[calc(100vh-8rem)] p-4 flex flex-col">
@@ -56,11 +66,50 @@ export default function ChatInterface() {
               <div className={`max-w-[80%] rounded-2xl p-4 shadow-lg transition-all duration-200 ${
                 message.role === 'user' 
                   ? 'bg-primary text-white font-medium'
-                  : 'bg-gray-100 text-gray-900'
+                  : 'bg-gray-100 text-gray-800'
               }`}>
-                <p className="leading-relaxed">
-                  {message.content}
-                </p>
+                {message.role === 'user' ? (
+                  <p className="leading-relaxed whitespace-pre-wrap">
+                    {message.content}
+                  </p>
+                ) : (
+                  <div className="prose prose-sm dark:prose-invert max-w-none prose-headings:text-gray-800 prose-p:text-gray-800">
+                    <ReactMarkdown
+                      components={{
+                        // 自定义代码块样式
+                        code({ inline, className, children, ...props }: CodeProps) {
+                          return (
+                            <code
+                              className={`${className} ${
+                                inline 
+                                  ? 'bg-gray-200 rounded px-1' 
+                                  : 'block bg-gray-800 text-gray-100 p-2 rounded-lg overflow-x-auto'
+                              }`}
+                              {...props}
+                            >
+                              {children}
+                            </code>
+                          )
+                        },
+                        // 自定义链接样式
+                        a({ node, className, children, ...props }) {
+                          return (
+                            <a
+                              className="text-blue-500 hover:text-blue-600 underline"
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              {...props}
+                            >
+                              {children}
+                            </a>
+                          )
+                        },
+                      }}
+                    >
+                      {message.content}
+                    </ReactMarkdown>
+                  </div>
+                )}
               </div>
             </div>
           ))}
@@ -84,6 +133,7 @@ export default function ChatInterface() {
             rows={3}
             value={input}
             onChange={(e) => setInput(e.target.value)}
+            onKeyDown={handleKeyDown}
           />
           <button 
             className="absolute right-4 bottom-4 p-3 rounded-xl bg-primary 
