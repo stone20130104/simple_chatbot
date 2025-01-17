@@ -2,6 +2,7 @@ import { useState, KeyboardEvent, ComponentPropsWithoutRef, useEffect } from 're
 import ReactMarkdown from 'react-markdown'
 
 type CodeProps = ComponentPropsWithoutRef<'code'> & { inline?: boolean }
+type LinkProps = ComponentPropsWithoutRef<'a'>
 
 interface Message {
   role: 'user' | 'assistant'
@@ -120,11 +121,10 @@ export default function ChatInterface() {
                   <div className="prose prose-sm dark:prose-invert max-w-none prose-headings:text-gray-800 prose-p:text-gray-800">
                     <ReactMarkdown
                       components={{
-                        // 自定义代码块样式
                         code({ inline, className, children, ...props }: CodeProps) {
                           return (
                             <code
-                              className={`${className} ${
+                              className={`${className || ''} ${
                                 inline 
                                   ? 'bg-gray-200 rounded px-1' 
                                   : 'block bg-gray-800 text-gray-100 p-2 rounded-lg overflow-x-auto'
@@ -135,8 +135,7 @@ export default function ChatInterface() {
                             </code>
                           )
                         },
-                        // 自定义链接样式
-                        a({ node, className, children, ...props }) {
+                        a({ children, ...props }: LinkProps) {
                           return (
                             <a
                               className="text-blue-500 hover:text-blue-600 underline"
