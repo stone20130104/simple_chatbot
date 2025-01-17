@@ -1,4 +1,4 @@
-import { useState, KeyboardEvent, ComponentPropsWithoutRef } from 'react'
+import { useState, KeyboardEvent, ComponentPropsWithoutRef, useEffect } from 'react'
 import ReactMarkdown from 'react-markdown'
 
 type CodeProps = ComponentPropsWithoutRef<'code'> & { inline?: boolean }
@@ -10,14 +10,56 @@ interface Message {
 
 export default function ChatInterface() {
   const [messages, setMessages] = useState<Message[]>([])
+  const [robotName, setRobotName] = useState('AI助手')
   const [input, setInput] = useState('')
   const [isLoading, setIsLoading] = useState(false)
+
+  // 初始化时从数据库获取名字
+  useEffect(() => {
+    fetch('/api/robotName')
+      .then(res => res.json())
+      .then(data => setRobotName(data.name))
+      .catch(console.error)
+  }, [])
+
+  // 更新数据库中的名字
+  const updateRobotName = async (newName: string) => {
+    try {
+      const res = await fetch('/api/robotName', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: newName })
+      })
+      if (res.ok) {
+        setRobotName(newName)
+      }
+    } catch (error) {
+      console.error('Failed to update robot name:', error)
+    }
+  }
 
   const handleSubmit = async () => {
     if (!input.trim() || isLoading) return
 
-    // 添加用户消息
     const newMessages = [...messages, { role: 'user' as const, content: input }]
+
+    // 检查是否是设置名字的命令
+    if (input.startsWith('/name ')) {
+      const newName = input.slice(6).trim()
+      if (newName) {
+        await updateRobotName(newName)
+        setMessages([
+          ...newMessages,
+          {
+            role: 'assistant',
+            content: `好的，从现在开始叫我${newName}。`
+          }
+        ])
+        setInput('')
+        return
+      }
+    }
+
     setMessages(newMessages)
     setInput('')
     setIsLoading(true)
@@ -31,13 +73,14 @@ export default function ChatInterface() {
         },
         body: JSON.stringify({
           model: 'deepseek-chat',
-          messages: newMessages
+          messages: [
+            { role: 'system', content: `你是一个名叫${robotName}的AI助手。` },
+            ...newMessages
+          ]
         })
       })
 
       const data = await response.json()
-      
-      // 添加AI回复
       setMessages([...newMessages, {
         role: 'assistant',
         content: data.choices[0].message.content
