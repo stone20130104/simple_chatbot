@@ -1,6 +1,7 @@
-import { useState, KeyboardEvent } from 'react'
+import { useState, KeyboardEvent, ComponentPropsWithoutRef } from 'react'
 import ReactMarkdown from 'react-markdown'
-import { CodeProps } from 'react-markdown/lib/ast-to-react'
+
+type CodeProps = ComponentPropsWithoutRef<'code'> & { inline?: boolean }
 
 interface Message {
   role: 'user' | 'assistant'
