@@ -1,13 +1,22 @@
 import { NextResponse } from 'next/server'
 import postgres from 'postgres'
+import { initDB } from '@/lib/db'
 
 const sql = postgres(process.env.DATABASE_URL || '', {
-  ssl: false,
+  ssl: 'require',
   max: 1
 })
 
+let isInitialized = false
+
 export async function GET() {
   try {
+    // 第一次访问时自动初始化数据库
+    if (!isInitialized) {
+      await initDB()
+      isInitialized = true
+    }
+
     const result = await sql`
       SELECT value FROM settings WHERE key = 'robotName';
     `
