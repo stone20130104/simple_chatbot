@@ -3,7 +3,7 @@ import postgres from 'postgres'
 import { initDB } from '@/lib/db'
 
 const sql = postgres(process.env.DATABASE_URL || '', {
-  ssl: 'require',
+  ssl: process.env.NODE_ENV === 'production' ? 'require' : false,
   max: 1
 })
 

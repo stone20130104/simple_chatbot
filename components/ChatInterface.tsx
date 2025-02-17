@@ -70,24 +70,55 @@ export default function ChatInterface() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': 'Bearer sk-dfbd4efff46b4f40b1678b72c4adc2d8'
+          'Authorization': 'Bearer sk-dfbd4efff46b4f40b1678b72c4adc2d8' // 替换为你的 API key
         },
         body: JSON.stringify({
-          model: 'deepseek-chat',
+          model: 'deepseek-reasoner',  // 使用 deepseek-re 模型
           messages: [
             { role: 'system', content: `你是一个名叫${robotName}的AI助手。` },
-            ...newMessages
-          ]
+            ...newMessages.map(msg => ({
+              role: msg.role,
+              content: msg.content
+            })),
+          ],
+          temperature: 0.7,  // 添加温度参数
+          max_tokens: 2000   // 设置最大 token 数
         })
       })
 
+      if (!response.ok) {
+        throw new Error(`API request failed: ${response.status}`)
+      }
+
       const data = await response.json()
-      setMessages([...newMessages, {
-        role: 'assistant',
-        content: data.choices[0].message.content
-      }])
+      
+      if (data.choices && data.choices[0]?.message) {
+        setMessages([...newMessages, {
+          role: 'assistant',
+          content: data.choices[0].message.content
+        }])
+      } else {
+        console.error('Unexpected API response:', data)
+        throw new Error('Invalid API response format')
+      }
     } catch (error) {
       console.error('Error:', error)
+      let errorMessage = '抱歉，我遇到了一些问题，请稍后再试。'
+      
+      if (error instanceof Error) {
+        if (error.message.includes('API request failed')) {
+          errorMessage = '抱歉，API 请求失败。请检查网络连接或稍后重试。'
+        } else if (error.message.includes('Invalid API response format')) {
+          errorMessage = '抱歉，收到了无效的 API 响应。请联系技术支持。'
+        } else {
+          errorMessage = `发生错误：${error.message}`
+        }
+      }
+      
+      setMessages([...newMessages, {
+        role: 'assistant',
+        content: errorMessage
+      }])
     } finally {
       setIsLoading(false)
     }
