@@ -142,14 +142,14 @@ export default function ChatInterface() {
               <div className={`max-w-[80%] rounded-2xl p-4 shadow-lg transition-all duration-200 ${
                 message.role === 'user' 
                   ? 'bg-primary text-white font-medium'
-                  : 'bg-gray-100 text-gray-800'
+                  : 'bg-gray-50 text-gray-900'
               }`}>
                 {message.role === 'user' ? (
                   <p className="leading-relaxed whitespace-pre-wrap">
                     {message.content}
                   </p>
                 ) : (
-                  <div className="prose prose-sm dark:prose-invert max-w-none prose-headings:text-gray-800 prose-p:text-gray-800">
+                  <div className="prose prose-sm max-w-none prose-headings:text-gray-900 prose-p:text-gray-900">
                     <ReactMarkdown
                       components={{
                         code({ inline, className, children, ...props }: CodeProps) {
@@ -157,8 +157,8 @@ export default function ChatInterface() {
                             <code
                               className={`${className || ''} ${
                                 inline 
-                                  ? 'bg-gray-200 rounded px-1' 
-                                  : 'block bg-gray-800 text-gray-100 p-2 rounded-lg overflow-x-auto'
+                                  ? 'bg-gray-200 text-gray-900 rounded px-1'
+                                  : 'block bg-gray-900 text-gray-50 p-2 rounded-lg overflow-x-auto'
                               }`}
                               {...props}
                             >
@@ -169,7 +169,7 @@ export default function ChatInterface() {
                         a({ children, ...props }: LinkProps) {
                           return (
                             <a
-                              className="text-blue-500 hover:text-blue-600 underline"
+                              className="text-blue-600 hover:text-blue-700 underline"
                               target="_blank"
                               rel="noopener noreferrer"
                               {...props}
@@ -189,7 +189,7 @@ export default function ChatInterface() {
           ))}
           {isLoading && (
             <div className="flex justify-start">
-              <div className="bg-white border rounded-lg p-3">
+              <div className="bg-gray-50 border rounded-lg p-3 text-gray-900">
                 正在思考...
               </div>
             </div>
