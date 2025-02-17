@@ -70,24 +70,55 @@ export default function ChatInterface() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': 'Bearer sk-dfbd4efff46b4f40b1678b72c4adc2d8'
+          'Authorization': 'Bearer sk-dfbd4efff46b4f40b1678b72c4adc2d8' // 替换为你的 API key
         },
         body: JSON.stringify({
-          model: 'deepseek-chat',
+          model: 'deepseek-reasoner',  // 使用 deepseek-re 模型
           messages: [
             { role: 'system', content: `你是一个名叫${robotName}的AI助手。` },
-            ...newMessages
-          ]
+            ...newMessages.map(msg => ({
+              role: msg.role,
+              content: msg.content
+            })),
+          ],
+          temperature: 0.7,  // 添加温度参数
+          max_tokens: 2000   // 设置最大 token 数
         })
       })
 
+      if (!response.ok) {
+        throw new Error(`API request failed: ${response.status}`)
+      }
+
       const data = await response.json()
-      setMessages([...newMessages, {
-        role: 'assistant',
-        content: data.choices[0].message.content
-      }])
+      
+      if (data.choices && data.choices[0]?.message) {
+        setMessages([...newMessages, {
+          role: 'assistant',
+          content: data.choices[0].message.content
+        }])
+      } else {
+        console.error('Unexpected API response:', data)
+        throw new Error('Invalid API response format')
+      }
     } catch (error) {
       console.error('Error:', error)
+      let errorMessage = '抱歉，我遇到了一些问题，请稍后再试。'
+      
+      if (error instanceof Error) {
+        if (error.message.includes('API request failed')) {
+          errorMessage = '抱歉，API 请求失败。请检查网络连接或稍后重试。'
+        } else if (error.message.includes('Invalid API response format')) {
+          errorMessage = '抱歉，收到了无效的 API 响应。请联系技术支持。'
+        } else {
+          errorMessage = `发生错误：${error.message}`
+        }
+      }
+      
+      setMessages([...newMessages, {
+        role: 'assistant',
+        content: errorMessage
+      }])
     } finally {
       setIsLoading(false)
     }
@@ -111,14 +142,14 @@ export default function ChatInterface() {
               <div className={`max-w-[80%] rounded-2xl p-4 shadow-lg transition-all duration-200 ${
                 message.role === 'user' 
                   ? 'bg-primary text-white font-medium'
-                  : 'bg-gray-100 text-gray-800'
+                  : 'bg-gray-50 text-gray-900'
               }`}>
                 {message.role === 'user' ? (
                   <p className="leading-relaxed whitespace-pre-wrap">
                     {message.content}
                   </p>
                 ) : (
-                  <div className="prose prose-sm dark:prose-invert max-w-none prose-headings:text-gray-800 prose-p:text-gray-800">
+                  <div className="prose prose-sm max-w-none prose-headings:text-gray-900 prose-p:text-gray-900">
                     <ReactMarkdown
                       components={{
                         code({ inline, className, children, ...props }: CodeProps) {
@@ -126,8 +157,8 @@ export default function ChatInterface() {
                             <code
                               className={`${className || ''} ${
                                 inline 
-                                  ? 'bg-gray-200 rounded px-1' 
-                                  : 'block bg-gray-800 text-gray-100 p-2 rounded-lg overflow-x-auto'
+                                  ? 'bg-gray-200 text-gray-900 rounded px-1'
+                                  : 'block bg-gray-900 text-gray-50 p-2 rounded-lg overflow-x-auto'
                               }`}
                               {...props}
                             >
@@ -138,7 +169,7 @@ export default function ChatInterface() {
                         a({ children, ...props }: LinkProps) {
                           return (
                             <a
-                              className="text-blue-500 hover:text-blue-600 underline"
+                              className="text-blue-600 hover:text-blue-700 underline"
                               target="_blank"
                               rel="noopener noreferrer"
                               {...props}
@@ -158,7 +189,7 @@ export default function ChatInterface() {
           ))}
           {isLoading && (
             <div className="flex justify-start">
-              <div className="bg-white border rounded-lg p-3">
+              <div className="bg-gray-50 border rounded-lg p-3 text-gray-900">
                 正在思考...
               </div>
             </div>
